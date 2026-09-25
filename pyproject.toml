@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "flow-veo-director"
-version = "1.0.0"
+version = "1.1.0"
 authors = [
   { name="Andre Lopez & ALCORE Technologies", email="andrelopez012@gmail.com" },
 ]
-description = "Director cinemático y generador de prompts para Google Flow y Veo con control de continuidad en videos largos."
+description = "Director cinematográfico autónomo y generador de prompts para Google Flow y Veo con control de continuidad en videos largos."
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [

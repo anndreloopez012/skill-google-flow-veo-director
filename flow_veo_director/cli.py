@@ -1,7 +1,7 @@
 """
 Command-Line Interface for Google Flow & Veo Cinematic Director.
 Provides rapid generation of Veo prompts, Google Flow multi-shot sequences,
-script timing analysis, and quality validation.
+script timing analysis, quality validation, and the Autonomous Director Agent.
 """
 
 import sys
@@ -11,6 +11,7 @@ from flow_veo_director.builder import VeoShotBlueprint
 from flow_veo_director.continuity import FlowSequence, FlowShot
 from flow_veo_director.timing import evaluate_segment_timing, count_words
 from flow_veo_director.validator import ScriptValidator
+from flow_veo_director.agent import FlowVeoDirectorAgent, run_interactive_agent
 from flow_veo_director.vocabulary import (
     CAMERA_MOVEMENTS,
     SHOT_FRAMINGS,
@@ -19,6 +20,28 @@ from flow_veo_director.vocabulary import (
     RENDER_STYLES,
     TRANSITION_CONNECTORS
 )
+
+
+def cmd_agent(args):
+    """Executes the Autonomous Director Agent in natural language or interactive mode."""
+    if args.interactive or not args.prompt:
+        run_interactive_agent()
+        return
+
+    prompt_text = " ".join(args.prompt) if isinstance(args.prompt, list) else args.prompt
+    style = "pixar_dreamworks_3d" if args.style == "3d" else "cinematic_live_action"
+    agent = FlowVeoDirectorAgent(
+        default_style=style,
+        default_ratio=args.ratio
+    )
+    dossier = agent.generate_full_dossier(prompt_text)
+
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as f:
+            f.write(dossier)
+        print(f"Expediente directorial exportado con éxito a: {args.output}")
+    else:
+        print(dossier)
 
 
 def cmd_prompt(args):
@@ -140,6 +163,15 @@ def main():
         description="Google Flow & Veo Cinematic Director CLI — Herramienta de prompts y secuencias de video largo."
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    # Subcommand: agent
+    p_agent = subparsers.add_parser("agent", help="Ejecuta el Agente Director Autónomo que interpreta lenguaje natural")
+    p_agent.add_argument("prompt", nargs="*", help="Instrucción en lenguaje natural sobre lo que deseas producir")
+    p_agent.add_argument("--interactive", "-i", action="store_true", help="Inicia sesión interactiva de dirección")
+    p_agent.add_argument("--ratio", default="9:16", choices=["9:16", "16:9", "1:1"], help="Relación de aspecto")
+    p_agent.add_argument("--style", default="3d", choices=["3d", "live_action"], help="Estilo visual predominante")
+    p_agent.add_argument("--output", "-o", help="Archivo Markdown de salida para el expediente")
+    p_agent.set_defaults(func=cmd_agent)
 
     # Subcommand: prompt
     p_prompt = subparsers.add_parser("prompt", help="Genera un prompt cinematográfico individual para Google Veo")
